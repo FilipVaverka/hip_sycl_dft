@@ -1,0 +1,8 @@
+file(GLOB_RECURSE HEADERS_LIST "*.h" "*.hpp")
+
+set(SRCS_LIST
+    sycl_dft_fftw.cpp
+)
+
+add_library(dft_backend_fftw EXCLUDE_FROM_ALL ${SRCS_LIST} ${HEADERS_LIST})
+target_link_libraries(dft_backend_fftw PRIVATE fftw3f fftw3f_omp)
