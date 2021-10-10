@@ -53,7 +53,7 @@ static void CreatePlan(RocFFTBackend *p)
         rocfft_plan_description_create(&pPlanDesc);
         rocfft_plan_description_set_data_layout(
             pPlanDesc,
-            p->outputLayout.type, p->outputLayout.type,
+            p->outputLayout.type, p->inputLayout.type,
             nullptr, nullptr,
             p->outputLayout.strides.size(), p->outputLayout.strides.data(), p->backwardDistance,
             p->inputLayout.strides.size(), p->inputLayout.strides.data(), p->forwardDistance);
@@ -116,7 +116,7 @@ void commit<DFT_BACKEND_HIP>(std::shared_ptr<void> &backend,
     if(desc.type == domain::REAL)
     {
         p->type = RocFFTBackend::TransformType_t(rocfft_transform_type_real_forward, rocfft_transform_type_real_inverse);
-        p->inputLayout.type  = rocfft_array_type_hermitian_interleaved;
+        p->inputLayout.type  = rocfft_array_type_real;
         p->outputLayout.type = rocfft_array_type_hermitian_interleaved;
     }
     else

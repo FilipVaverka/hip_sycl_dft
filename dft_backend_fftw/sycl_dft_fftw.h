@@ -20,6 +20,8 @@ struct FFTWBackend
         return std::reinterpret_pointer_cast<FFTWBackend>(pBackendHandle);
     }
 
+    sycl::dft::domain domain;
+
     std::vector<int> dimensions;
     int              count;
     int              inputStride;

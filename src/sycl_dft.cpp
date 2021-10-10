@@ -314,10 +314,10 @@ sycl::event sycl::dft::compute_backward(descriptor_type              &desc,
         descriptor<precision::prec, domain::dom> &desc,                                                               \
         sycl::buffer<inType, dim>  &in,                                                                               \
         sycl::buffer<outType, dim> &out);                                                                             \
-    template sycl::event sycl::dft::compute_backward<descriptor<precision::prec, domain::dom>, inType, outType, dim>( \
+    template sycl::event sycl::dft::compute_backward<descriptor<precision::prec, domain::dom>, outType, inType, dim>( \
         descriptor<precision::prec, domain::dom> &desc,                                                               \
-        sycl::buffer<inType, dim>  &in,                                                                               \
-        sycl::buffer<outType, dim> &out)
+        sycl::buffer<outType, dim> &in,                                                                               \
+        sycl::buffer<inType,  dim> &out)
 
 #define SYCL_DFT_ROCFFT_NINPL_DIMS(prec, dom, inType, outType)        \
     SYCL_DFT_ROCFFT_NINPL_INSTANTIATE(prec, dom, inType, outType, 1); \

@@ -8,6 +8,8 @@ void test_dft_1d(sycl::queue &q, size_t n, size_t e, size_t s, size_t c);
 void test_dft_2d(sycl::queue &q, size_t nx, size_t ny);
 void test_dft_3d(sycl::queue &q, size_t nx, size_t ny, size_t nz);
 
+void test_dft_r2c_1d(sycl::queue &q, size_t n);
+
 
 int main(int argc, char *argv[])
 {
@@ -15,12 +17,19 @@ int main(int argc, char *argv[])
     sycl::queue q_cpu{sycl::cpu_selector()};
     sycl::queue q_gpu{sycl::gpu_selector()};
 
+    std::cout << "1D: R2C" << std::endl;
+    test_dft_r2c_1d(q_cpu, 256);
+    test_dft_r2c_1d(q_gpu, 256);
+
+    std::cout << "1D: C2C" << std::endl;
     test_dft_1d(q_cpu, 256, 512, 1, 4);
     test_dft_1d(q_gpu, 256, 512, 1, 4);
 
+    std::cout << "2D: C2C" << std::endl;
     test_dft_2d(q_cpu, 128, 256);
     test_dft_2d(q_gpu, 128, 256);
 
+    std::cout << "3D: C2C" << std::endl;
     test_dft_3d(q_cpu, 64, 128, 256);
     test_dft_3d(q_gpu, 64, 128, 256);
 
@@ -142,6 +151,40 @@ void test_dft_3d(sycl::queue &q, size_t nx, size_t ny, size_t nz)
     {
         sycl::float2 diff = input[i] - output[i] * (1.0f / float(nx*ny*nz));
         maxError = std::max(maxError, std::fabs(diff.x()));
+    }
+
+    std::cout << q.get_device().get_info<sycl::info::device::vendor>() << " MAX_ERROR: " << maxError << std::endl;
+}
+
+void test_dft_r2c_1d(sycl::queue &q, size_t n)
+{
+    sycl::dft::descriptor<sycl::dft::precision::SINGLE, sycl::dft::domain::REAL> d(n);
+
+    d.commit(q);
+
+    std::vector<float> input(n);
+    std::vector<float> output(n);
+
+    for(size_t i = 0; i < n; ++i)
+    {
+        float x  = i * ((2.0f * M_PI) / float(n));
+        input[i] = cosf(x);
+    }
+
+    {
+        auto inputBuffer  = sycl::buffer<float, 1>(input.data(), sycl::range<1>(input.size()));
+        auto tmpBuffer    = sycl::buffer<sycl::float2, 1>(sycl::range<1>(input.size()));
+        auto outputBuffer = sycl::buffer<float, 1>(output.data(), sycl::range<1>(output.size()));
+
+        sycl::dft::compute_forward(d, inputBuffer, tmpBuffer);
+        sycl::dft::compute_backward(d, tmpBuffer, outputBuffer);
+    }
+
+    float maxError = 0.0f;
+    for(size_t i = 0; i < n; ++i)
+    {
+        float diff = input[i] - output[i] * (1.0f / float(n));
+        maxError = std::max(maxError, std::fabs(diff));
     }
 
     std::cout << q.get_device().get_info<sycl::info::device::vendor>() << " MAX_ERROR: " << maxError << std::endl;

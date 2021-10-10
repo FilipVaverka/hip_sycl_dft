@@ -22,12 +22,10 @@ FFTWBackend::~FFTWBackend()
         fftwf_destroy_plan(pPlanInverse);
 }
 
-static void CreatePlan(FFTWBackend *p)
+static void CreatePlanC2C(FFTWBackend *p)
 {
     fftwf_plan_with_nthreads(p->pQueue->get_device().get_info<sycl::info::device::max_compute_units>());
 
-    /*size_t inputDataSize  = std::reduce(p->inputEmbed.begin(), p->inputEmbed.end(), 1, std::multiplies<>())   * p->inputStride;
-    size_t outputDataSize = std::reduce(p->outputEmbed.begin(), p->outputEmbed.end(), 1, std::multiplies<>()) * p->outputStride;*/
     std::vector<fftwf_complex> tmpInput(p->forwardDistance * p->count), tmpOutput(p->backwardDistance * p->count);
 
     p->pPlanForward = fftwf_plan_many_dft(p->dimensions.size(), p->dimensions.data(), p->count,
@@ -39,6 +37,30 @@ static void CreatePlan(FFTWBackend *p)
         tmpOutput.data(), p->outputEmbed.data(), p->outputStride, p->backwardDistance, 
         p->isInPlace ? tmpOutput.data() : tmpInput.data(), p->inputEmbed.data(), p->inputStride, p->forwardDistance, 
         FFTW_BACKWARD, FFTW_MEASURE);
+}
+
+static void CreatePlanR2C(FFTWBackend *p)
+{
+    fftwf_plan_with_nthreads(p->pQueue->get_device().get_info<sycl::info::device::max_compute_units>());
+
+    std::vector<fftwf_complex> tmpInput(p->forwardDistance * p->count);
+    std::vector<fftwf_complex> tmpOutput(p->backwardDistance * p->count);
+
+    float *pFwdInputData          = reinterpret_cast<float *>(tmpInput.data());
+    fftwf_complex *pFwdOutputData = p->isInPlace ? tmpInput.data() : tmpOutput.data();
+
+    p->pPlanForward = fftwf_plan_many_dft_r2c(p->dimensions.size(), p->dimensions.data(), p->count,
+        pFwdInputData,  p->inputEmbed.data(),  p->inputStride,  p->forwardDistance,
+        pFwdOutputData, p->outputEmbed.data(), p->outputStride, p->backwardDistance,
+        FFTW_MEASURE);
+    
+    fftwf_complex *pBwdInputData = tmpInput.data();
+    float *pBwdOutputData        = reinterpret_cast<float *>(p->isInPlace ? tmpInput.data() : tmpOutput.data());
+    
+    p->pPlanInverse = fftwf_plan_many_dft_c2r(p->dimensions.size(), p->dimensions.data(), p->count, 
+        pBwdInputData,  p->outputEmbed.data(), p->outputStride, p->backwardDistance, 
+        pBwdOutputData, p->inputEmbed.data(),  p->inputStride,  p->forwardDistance, 
+        FFTW_MEASURE);
 }
 
 static void CheckDFTConfig(const DFTDescriptorData_t &desc)
@@ -64,6 +86,7 @@ void commit<DFT_BACKEND_OMP>(std::shared_ptr<void> &backend,
 {
     std::shared_ptr<FFTWBackend> p = FFTWBackend::FromHandle(backend);
 
+    p->domain = desc.type;
     p->pQueue = desc.pQueue;
     p->pWorkBuffer = desc.pWorkspace;
     p->count = desc.count;
@@ -111,8 +134,11 @@ void commit<DFT_BACKEND_OMP>(std::shared_ptr<void> &backend,
         std::reverse_copy(embed.begin(), embed.end(), p->outputEmbed.begin());
         p->backwardDistance = (desc.backwardDist == 1) ? extStrides.back() : desc.backwardDist;
     }
-    
-    CreatePlan(p.get());
+
+    if(p->domain == domain::REAL)
+        CreatePlanR2C(p.get());
+    else
+        CreatePlanC2C(p.get());
 }
 
 template<int BACKEND, typename data_type, int D>
@@ -129,8 +155,12 @@ sycl::event compute_forward(std::shared_ptr<void>      &backend,
             void *pData = dataAcc.get_pointer(); // h.get_native_mem<sycl::backend::omp>(dataAcc);
             void *pWork = tmpAcc.get_pointer();  // h.get_native_mem<sycl::backend::omp>(tmpAcc);
 
-            fftwf_execute_dft(p->pPlanForward, reinterpret_cast<fftwf_complex *>(pData), 
-                reinterpret_cast<fftwf_complex *>(pData));
+            if(p->domain == domain::REAL)
+                fftwf_execute_dft_r2c(p->pPlanForward, reinterpret_cast<float *>(pData), 
+                    reinterpret_cast<fftwf_complex *>(pData));
+            else
+                fftwf_execute_dft(p->pPlanForward, reinterpret_cast<fftwf_complex *>(pData), 
+                    reinterpret_cast<fftwf_complex *>(pData));
         });
     });
 }
@@ -152,8 +182,12 @@ sycl::event compute_forward(std::shared_ptr<void>        &backend,
             void *pOutput = outputAcc.get_pointer(); // h.get_native_mem<sycl::backend::omp>(outputAcc);
             void *pWork   = tmpAcc.get_pointer(); // h.get_native_mem<sycl::backend::omp>(tmpAcc);
 
-            fftwf_execute_dft(p->pPlanForward, reinterpret_cast<fftwf_complex *>(pInput), 
-                reinterpret_cast<fftwf_complex *>(pOutput));
+            if(p->domain == domain::REAL)
+                fftwf_execute_dft_r2c(p->pPlanForward, reinterpret_cast<float *>(pInput), 
+                    reinterpret_cast<fftwf_complex *>(pOutput));
+            else
+                fftwf_execute_dft(p->pPlanForward, reinterpret_cast<fftwf_complex *>(pInput), 
+                    reinterpret_cast<fftwf_complex *>(pOutput));
         });
     });
 }
@@ -172,8 +206,12 @@ sycl::event compute_backward(std::shared_ptr<void>      &backend,
             void *pData = dataAcc.get_pointer(); // h.get_native_mem<sycl::backend::omp>(dataAcc);
             void *pWork = tmpAcc.get_pointer();  // h.get_native_mem<sycl::backend::omp>(tmpAcc);
 
-            fftwf_execute_dft(p->pPlanInverse, reinterpret_cast<fftwf_complex *>(pData), 
-                reinterpret_cast<fftwf_complex *>(pData));
+            if(p->domain == domain::REAL)
+                fftwf_execute_dft_c2r(p->pPlanInverse, reinterpret_cast<fftwf_complex *>(pData), 
+                    reinterpret_cast<float *>(pData));
+            else
+                fftwf_execute_dft(p->pPlanInverse, reinterpret_cast<fftwf_complex *>(pData), 
+                    reinterpret_cast<fftwf_complex *>(pData));
         });
     });
 }
@@ -195,8 +233,12 @@ sycl::event compute_backward(std::shared_ptr<void>        &backend,
             void *pOutput = outputAcc.get_pointer(); // h.get_native_mem<sycl::backend::omp>(outputAcc);
             void *pWork   = tmpAcc.get_pointer(); // h.get_native_mem<sycl::backend::omp>(tmpAcc);
 
-            fftwf_execute_dft(p->pPlanInverse, reinterpret_cast<fftwf_complex *>(pInput), 
-                reinterpret_cast<fftwf_complex *>(pOutput));
+            if(p->domain == domain::REAL)
+                fftwf_execute_dft_c2r(p->pPlanInverse, reinterpret_cast<fftwf_complex *>(pInput), 
+                    reinterpret_cast<float *>(pOutput));
+            else
+                fftwf_execute_dft(p->pPlanInverse, reinterpret_cast<fftwf_complex *>(pInput), 
+                    reinterpret_cast<fftwf_complex *>(pOutput));
         });
     });
 }

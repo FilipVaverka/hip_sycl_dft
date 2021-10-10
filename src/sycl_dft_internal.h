@@ -106,7 +106,7 @@ sycl::event compute_backward(std::shared_ptr<void>        &backend,
 
 #define SYCL_DFT_BACKEND_NINPL_INSTANTIATE(B, input_type, output_type, D, E) \
     E template sycl::event sycl::dft::backend::compute_forward<B, input_type, output_type, D>(std::shared_ptr<void>  &backend, sycl::buffer<input_type, D> &in, sycl::buffer<output_type, D> &out); \
-    E template sycl::event sycl::dft::backend::compute_backward<B, input_type, output_type, D>(std::shared_ptr<void> &backend, sycl::buffer<input_type, D> &in, sycl::buffer<output_type, D> &out)
+    E template sycl::event sycl::dft::backend::compute_backward<B, output_type, input_type, D>(std::shared_ptr<void> &backend, sycl::buffer<output_type, D> &in, sycl::buffer<input_type, D> &out)
 
 #define SYCL_DFT_BACKEND_NINPL_DIMS(B, input_type, output_type, E) \
     SYCL_DFT_BACKEND_NINPL_INSTANTIATE(B, input_type, output_type, 1, E); \
