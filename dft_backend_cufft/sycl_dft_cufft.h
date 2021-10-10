@@ -27,7 +27,7 @@ struct CuFFTBackend
     std::vector<int> inputEmbed;
     std::vector<int> outputEmbed;
     int              forwardDistance;
-    int              backwardDistamce;
+    int              backwardDistance;
 
     cufftHandle pPlanForward;
     cufftHandle pPlanInverse;

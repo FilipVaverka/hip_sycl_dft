@@ -1,4 +1,5 @@
 #include <cuda.h>
+#include <cuda_runtime.h>
 
 #include "sycl_dft_cufft.h"
 
@@ -27,19 +28,16 @@ void CreatePlan(CuFFTBackend *p)
     int deviceId = sycl::get_native<sycl::backend::cuda>(p->pQueue->get_device());
     if(cudaSetDevice(deviceId) != cudaSuccess)
         throw std::runtime_error("Failed to select CUDA device!");
-
-    size_t dataSize = std::reduce(p->dimensions.begin(), p->dimensions.end(), 1, std::multiplies<>());
-
-    std::vector<int> shape(p->dimensions.size());
-    std::reverse_copy(p->dimensions.begin(), p->dimensions.end(), shape.begin());
-
-    cufftPlanMany(&p->pPlanForward, shape.size(), shape.data(), 
-        shape.data(), 1, dataSize, 
-        shape.data(), 1, dataSize, p->type, p->count);
     
-    cufftPlanMany(&p->pPlanInverse, shape.size(), shape.data(), 
-        shape.data(), 1, dataSize, 
-        shape.data(), 1, dataSize, p->type, p->count);
+    cufftPlanMany(&p->pPlanForward, p->dimensions.size(), p->dimensions.data(),
+        p->inputEmbed.data(), p->inputStride, p->forwardDistance,
+        p->outputEmbed.data(), p->outputStride, p->backwardDistance,
+        p->type, p->count);
+    
+    cufftPlanMany(&p->pPlanInverse, p->dimensions.size(), p->dimensions.data(),
+        p->outputEmbed.data(), p->outputStride, p->backwardDistance,
+        p->inputEmbed.data(), p->inputStride, p->forwardDistance,
+        p->type, p->count);
 
     size_t forwardWorkSize = 0;
     size_t inverseWorkSize = 0;
@@ -83,7 +81,7 @@ void commit<DFT_BACKEND_CUDA>(std::shared_ptr<void> &backend,
         for(size_t i = 0; i < extStrides.size() - 1; ++i)
             embed.push_back(extStrides[i + 1] / extStrides[i]);
         
-        p->inputEmbed.resize(desc.dimensions.size())
+        p->inputEmbed.resize(desc.dimensions.size());
         std::reverse_copy(embed.begin(), embed.end(), p->inputEmbed.begin());
         p->forwardDistance = (desc.forwardDist == 1) ? extStrides.back() : desc.forwardDist;
     }
@@ -96,7 +94,7 @@ void commit<DFT_BACKEND_CUDA>(std::shared_ptr<void> &backend,
         for(size_t i = 0; i < extStrides.size() - 1; ++i)
             embed.push_back(extStrides[i + 1] / extStrides[i]);
         
-        p->outputEmbed.resize(desc.dimensions.size())
+        p->outputEmbed.resize(desc.dimensions.size());
         std::reverse_copy(embed.begin(), embed.end(), p->outputEmbed.begin());
         p->backwardDistance = (desc.backwardDist == 1) ? extStrides.back() : desc.backwardDist;
     }
