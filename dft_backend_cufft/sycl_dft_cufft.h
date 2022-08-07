@@ -6,8 +6,6 @@
 #include <cufft.h>
 
 #define SYCL_EXT_HIPSYCL_BACKEND_CUDA
-#include <SYCL/sycl.hpp>
-
 #include "sycl_dft.h"
 #include "sycl_dft_internal.h"
 

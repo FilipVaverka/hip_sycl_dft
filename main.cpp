@@ -10,6 +10,11 @@ void test_dft_3d(sycl::queue &q, size_t nx, size_t ny, size_t nz);
 
 void test_dft_r2c_1d(sycl::queue &q, size_t n);
 
+void PrintDeviceInfo(const sycl::device &d, float error) {
+    std::cout << d.get_info<sycl::info::device::name>() 
+              << "(" << d.get_info<sycl::info::device::vendor>() << "): "
+              << error << std::endl;
+}
 
 int main(int argc, char *argv[])
 {
@@ -78,7 +83,7 @@ void test_dft_1d(sycl::queue &q, size_t n, size_t e, size_t s, size_t c)
         }
     }
 
-    std::cout << q.get_device().get_info<sycl::info::device::vendor>() << " MAX_ERROR: " << maxError << std::endl;
+    PrintDeviceInfo(q.get_device(), maxError);
 }
 
 void test_dft_2d(sycl::queue &q, size_t nx, size_t ny)
@@ -114,7 +119,7 @@ void test_dft_2d(sycl::queue &q, size_t nx, size_t ny)
         maxError = std::max(maxError, std::fabs(diff.x()));
     }
 
-    std::cout << q.get_device().get_info<sycl::info::device::vendor>() << " MAX_ERROR: " << maxError << std::endl;
+    PrintDeviceInfo(q.get_device(), maxError);
 }
 
 void test_dft_3d(sycl::queue &q, size_t nx, size_t ny, size_t nz)
@@ -153,7 +158,7 @@ void test_dft_3d(sycl::queue &q, size_t nx, size_t ny, size_t nz)
         maxError = std::max(maxError, std::fabs(diff.x()));
     }
 
-    std::cout << q.get_device().get_info<sycl::info::device::vendor>() << " MAX_ERROR: " << maxError << std::endl;
+    PrintDeviceInfo(q.get_device(), maxError);
 }
 
 void test_dft_r2c_1d(sycl::queue &q, size_t n)
@@ -187,5 +192,5 @@ void test_dft_r2c_1d(sycl::queue &q, size_t n)
         maxError = std::max(maxError, std::fabs(diff));
     }
 
-    std::cout << q.get_device().get_info<sycl::info::device::vendor>() << " MAX_ERROR: " << maxError << std::endl;
+    PrintDeviceInfo(q.get_device(), maxError);
 }

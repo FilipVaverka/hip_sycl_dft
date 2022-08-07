@@ -5,6 +5,15 @@
 
 #include <cstdint>
 #include <vector>
+
+#ifdef __HIP__
+    #include <hip/hip_runtime.h>
+#endif // __HIP__
+
+#if defined(__HIP__) || defined(__CUDA__)
+    #undef __noinline__
+#endif // defined(__HIP__) || defined(__CUDA__)
+
 #include <SYCL/sycl.hpp>
 
 namespace sycl::dft {

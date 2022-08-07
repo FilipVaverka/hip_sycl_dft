@@ -5,4 +5,5 @@ set(SRCS_LIST
 )
 
 add_library(dft_backend_fftw EXCLUDE_FROM_ALL ${SRCS_LIST} ${HEADERS_LIST})
+target_compile_options(dft_backend_fftw PRIVATE -I/usr/local/cuda/include --hipsycl-targets=${SYCL_DFT_FFTW_ARCHS})
 target_link_libraries(dft_backend_fftw PRIVATE fftw3f fftw3f_omp)

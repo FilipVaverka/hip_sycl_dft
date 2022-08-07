@@ -6,8 +6,6 @@
 #include <fftw3.h>
 
 #define SYCL_EXT_HIPSYCL_BACKEND_OMP
-#include <SYCL/sycl.hpp>
-
 #include "sycl_dft.h"
 #include "sycl_dft_internal.h"
 

@@ -4,11 +4,8 @@
 #define __SYCL_DFT_ROCFFT_H__
 
 #include <rocfft.h>
-#include <hip/hip_runtime.h>
 
 #define SYCL_EXT_HIPSYCL_BACKEND_HIP
-#include <SYCL/sycl.hpp>
-
 #include "sycl_dft.h"
 #include "sycl_dft_internal.h"
 

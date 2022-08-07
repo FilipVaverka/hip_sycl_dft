@@ -1,0 +1,7 @@
+CompileFlags:
+    Add: [-Wno-pragma-once-outside-header, -Wno-unsupported-option, -Wall, -Wextra]
+    Remove: [--hipsycl-targets=*]
+    CompilationDatabase: build
+Diagnostics:
+    Suppress:
+        - drv_unsupported_opt
