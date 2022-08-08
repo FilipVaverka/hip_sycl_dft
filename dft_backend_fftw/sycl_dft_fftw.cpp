@@ -1,3 +1,11 @@
+// ======== Copyright (c) 2022, Filip Vaverka, All rights reserved. ======== //
+//
+// Purpose:     FFTW (OpenMP) backend
+//
+// $NoKeywords: $HipSyclDft $sycl_dft_fftw.cpp
+// $Date:       $2022-08-08
+// ========================================================================= //
+
 #include <algorithm>
 
 #include "sycl_dft_fftw.h"

@@ -1,3 +1,11 @@
+// ======== Copyright (c) 2022, Filip Vaverka, All rights reserved. ======== //
+//
+// Purpose:     Common internal interface
+//
+// $NoKeywords: $HipSyclDft $sycl_dft_internal.h
+// $Date:       $2022-08-08
+// ========================================================================= //
+
 #pragma once
 
 #ifndef __SYCL_DFT_INTERNAL_H__

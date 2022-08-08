@@ -1,3 +1,11 @@
+// ======== Copyright (c) 2022, Filip Vaverka, All rights reserved. ======== //
+//
+// Purpose:     rocFFT (HIP) backend
+//
+// $NoKeywords: $HipSyclDft $sycl_dft_rocfft.h
+// $Date:       $2022-08-08
+// ========================================================================= //
+
 #pragma once
 
 #ifndef __SYCL_DFT_ROCFFT_H__

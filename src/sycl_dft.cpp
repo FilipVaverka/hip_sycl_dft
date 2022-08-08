@@ -1,3 +1,11 @@
+// ======== Copyright (c) 2022, Filip Vaverka, All rights reserved. ======== //
+//
+// Purpose:     Common public interface
+//
+// $NoKeywords: $HipSyclDft $sycl_dft.cpp
+// $Date:       $2022-08-08
+// ========================================================================= //
+
 #include "sycl_dft.h"
 #include "sycl_dft_internal.h"
 

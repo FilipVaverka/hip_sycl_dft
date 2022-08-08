@@ -1,3 +1,11 @@
+## ======== Copyright (c) 2022, Filip Vaverka, All rights reserved. ======== ##
+##
+## Purpose:     HIP SYCL DFT library with multi-backend support
+##
+## $NoKeywords: $HipSyclDft $CMakeLists.txt
+## $Date:       $2022-08-08
+## ========================================================================= ##
+
 cmake_minimum_required(VERSION 3.12.0)
 project(sycl_dft)
 

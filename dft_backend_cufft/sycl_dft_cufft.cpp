@@ -1,3 +1,11 @@
+// ======== Copyright (c) 2022, Filip Vaverka, All rights reserved. ======== //
+//
+// Purpose:     cuFFT (CUDA) backend
+//
+// $NoKeywords: $HipSyclDft $sycl_dft_cufft.cpp
+// $Date:       $2022-08-08
+// ========================================================================= //
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 

@@ -1,3 +1,11 @@
+## ======== Copyright (c) 2022, Filip Vaverka, All rights reserved. ======== ##
+##
+## Purpose:     rocFFT (HIP) backend
+##
+## $NoKeywords: $HipSyclDft $CMakeLists.txt
+## $Date:       $2022-08-08
+## ========================================================================= ##
+
 file(GLOB_RECURSE HEADERS_LIST "*.h" "*.hpp")
 
 set(SRCS_LIST

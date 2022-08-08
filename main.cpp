@@ -1,3 +1,11 @@
+// ======== Copyright (c) 2022, Filip Vaverka, All rights reserved. ======== //
+//
+// Purpose:     HIP SYCL DFT library with multi-backend support
+//
+// $NoKeywords: $HipSyclDft $main.cpp
+// $Date:       $2022-08-08
+// ========================================================================= //
+
 #include <iostream>
 #include <vector>
 
@@ -12,13 +20,13 @@ void test_dft_r2c_1d(sycl::queue &q, size_t n);
 
 void PrintDeviceInfo(const sycl::device &d, float error) {
     std::cout << d.get_info<sycl::info::device::name>() 
-              << "(" << d.get_info<sycl::info::device::vendor>() << "): "
+              << " (" << d.get_info<sycl::info::device::vendor>() << "): "
               << error << std::endl;
 }
 
 int main(int argc, char *argv[])
 {
-    sycl::default_selector selector;
+    // sycl::default_selector selector;
     sycl::queue q_cpu{sycl::cpu_selector()};
     sycl::queue q_gpu{sycl::gpu_selector()};
 
